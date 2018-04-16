@@ -6,7 +6,7 @@ NO_ECHO		?= @
 
 TARGET_NAME	= test_observer
 
-BOOST_ROOT=/usr/local/boost
+BOOST_ROOT=/opt/boost
 OBJ_PATH=_build
 
 INCLUDE_PATH	+= -I .
