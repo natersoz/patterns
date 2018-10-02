@@ -63,6 +63,8 @@ private:
      * Where the observers are stored.
      * @note observer_list cannot be const since calling observer->Notify() is
      * not const; event notifications likely have side effects.
+     * @note Use constant_time_size<false> so that list nodes can be detached
+     * efficiently using unlink().
      */
     boost::intrusive::list< Observer<NotificationType>,
                             boost::intrusive::constant_time_size<false> >
@@ -78,7 +80,10 @@ void Observable<NotificationType>::Attach(Observer<NotificationType> &observer)
 template <typename NotificationType>
 void Observable<NotificationType>::Detach(Observer<NotificationType> &observer)
 {
-    observer_list.remove(observer);
+    if (observer.is_linked())
+    {
+        observer.unlink();
+    }
 }
 
 template <typename NotificationType>
@@ -102,4 +107,3 @@ std::size_t Observable<NotificationType>::GetObserverCount() const
 {
     return observer_list.size();
 }
-

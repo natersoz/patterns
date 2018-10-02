@@ -20,7 +20,7 @@
  * list_base_hook: default tag, raw pointers stored, safe_link mode.
  */
 template <typename NotificationType>
-class Observer: public boost::intrusive::list_base_hook<>
+class Observer: public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::auto_unlink>>
 {
 public:
     virtual ~Observer()                         = default;
@@ -43,15 +43,4 @@ public:
      * @retval false The Observer is not attached to the Observable.
      */
     bool IsAttached() const { return this->is_linked(); }
-
-    /**
-     * An observer is equal to another if their pointers are the same.
-     * Equality meaning that the class being notified from the observable
-     * is the same class.
-     *
-     * @return bool If the observers are the same receivers of notifications.
-     */
-    bool operator==(Observer const& rhs) const { return (this == &rhs); }
 };
-
-
