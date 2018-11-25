@@ -27,10 +27,12 @@ template <typename NotificationType>
 class Observer
 {
 public:
-    virtual ~Observer()                         = default;
-    Observer()                                  = default;
-    Observer(Observer const &rhs)               = delete;
-    Observer& operator = (Observer const &rhs)  = delete;
+    virtual ~Observer()                     = default;
+    Observer()                              = default;
+    Observer(Observer const&)               = delete;
+    Observer(Observer &&)                   = delete;
+    Observer& operator = (Observer const&)  = delete;
+    Observer& operator=(Observer&&)         = delete;
 
     /**
      * Notifications are called onto this interface

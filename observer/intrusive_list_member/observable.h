@@ -24,10 +24,12 @@ template <typename NotificationType>
 class Observable
 {
 public:
-    ~Observable()                                   = default;
-    Observable()                                    = default;
-    Observable(Observable const &rhs)               = delete;
-    Observable& operator = (Observable const &rhs)  = delete;
+    ~Observable()                               = default;
+    Observable()                                = default;
+    Observable(Observable const&)               = delete;
+    Observable(Observable&&)                    = delete;
+    Observable& operator = (Observable const&)  = delete;
+    Observable& operator=(Observable&&)         = delete;
 
     /**
      * Attach an observer to this observable.
