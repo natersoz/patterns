@@ -48,7 +48,7 @@ public:
      * @retval true The Observer is attached to the Observable.
      * @retval false The Observer is not attached to the Observable.
      */
-    bool IsAttached() const { return this->is_linked(); }
+    bool IsAttached() const { return this->hook.is_linked(); }
 
 private:
     using list_hook_type = boost::intrusive::list_member_hook<

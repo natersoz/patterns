@@ -54,9 +54,10 @@ void TestObserver::Notify(int const &notification)
 
     // When the value of the notification matches our id, detach from the Observable.
     // This will test that the remove operation from the observer_list works properly.
-    if (notification == id_)
+    if (notification == this->id_)
     {
         test_observable.Detach(*this);
+        std::cout << "Observer " << this->id_ << " is attached: " << this->IsAttached() << std::endl;
     }
 };
 
