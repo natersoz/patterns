@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <list>
+
 #include "observer.h"
 
 /**
@@ -25,19 +26,25 @@ template <typename NotificationType>
 class Observable
 {
 public:
-    ~Observable() = default;
-    Observable()                                    = default;
-    Observable(Observable const &rhs)               = delete;
-    Observable& operator = (Observable const &rhs)  = delete;
+    using value_type = NotificationType;
+
+    virtual ~Observable()                       = default;
+    Observable()                                = default;
+    Observable(Observable const &)              = delete;
+    Observable(Observable&&)                    = delete;
+    Observable& operator = (Observable const&)  = delete;
+    Observable& operator = (Observable&&)       = delete;
 
     /**
      * Attach an observer to this observable.
-     * The observer will be notified with type NotificationType const reference
-     * when needed.
+     * The observer will be notified with of events when this->NotifyAll is called.
      *
      * @param observer The observer to notify with events.
      */
-    void Attach(Observer<NotificationType> &observer);
+    void Attach(Observer<value_type> &observer)
+    {
+        this->observer_list.push_back(&observer);
+    }
 
     /**
      * Detach the observer from this observable.
@@ -45,7 +52,10 @@ public:
      *
      * @param observer The observer to withdraw from receiving event notifications.
      */
-    void Detach(Observer<NotificationType> &observer);
+    void Detach(Observer<value_type> &observer)
+    {
+        this->observer_list.remove(&observer);
+    }
 
     /**
      * Notify all observers of an event.
@@ -54,10 +64,26 @@ public:
      *
      * @param notification The information to be sent as a notification event.
      */
-    void NotifyAll(NotificationType const &notification);
+    void NotifyAll(value_type const &notification)
+    {
+        // Note that the iteration happens prior to calling observer->Notify().
+        // The observer may remove itself from the list rendering the current
+        // iterator position invalid. Therefore: iterate first, operate next.
+        for (auto observer_iter = this->observer_list.begin();
+             observer_iter != this->observer_list.end();
+            )
+        {
+            Observer<value_type> *observer = *observer_iter;
+            ++observer_iter;
+            observer->Notify(notification);
+        }
+    }
 
     /** @return size_t The number of Observers attached to this Observable. */
-    std::size_t GetObserverCount(void) const;
+    constexpr std::size_t GetObserverCount(void) const
+    {
+        return this->observer_list.size();
+    }
 
 private:
     /**
@@ -65,40 +91,5 @@ private:
      * @note observer_list cannot be const since calling observer->Notify() is
      * not const; event notifications likely have side effects.
      */
-    std::list< Observer<NotificationType>* > observer_list;
+    std::list<Observer<value_type>*> observer_list;
 };
-
-template <typename NotificationType>
-void Observable<NotificationType>::Attach(Observer<NotificationType> &observer)
-{
-    observer_list.push_back(&observer);
-}
-
-template <typename NotificationType>
-void Observable<NotificationType>::Detach(Observer<NotificationType> &observer)
-{
-    observer_list.remove(&observer);
-}
-
-template <typename NotificationType>
-void Observable<NotificationType>::NotifyAll(NotificationType const &notification)
-{
-    // Note that the iteration happens prior to calling observer->Notify().
-    // The observer may remove itself from the list rendering the current
-    // iterator position invalid. Therefore: iterate first, operate next.
-    for (auto observer_iter = observer_list.begin();
-         observer_iter != observer_list.end();
-        )
-    {
-        Observer<NotificationType> *observer = *observer_iter;
-        ++observer_iter;
-        observer->Notify(notification);
-    }
-}
-
-template <typename NotificationType>
-std::size_t Observable<NotificationType>::GetObserverCount() const
-{
-    return observer_list.size();
-}
-

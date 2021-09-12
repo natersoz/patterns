@@ -3,7 +3,6 @@
  */
 
 #pragma once
-#include <boost/intrusive/list.hpp>
 
 /**
  * @class Observer.
@@ -20,13 +19,17 @@
  * list_base_hook: default tag, raw pointers stored, safe_link mode.
  */
 template <typename NotificationType>
-class Observer: public boost::intrusive::list_base_hook<>
+class Observer
 {
 public:
-    virtual ~Observer() = default;
-    Observer() = default;
-    Observer(Observer const &rhs) = delete;
-    Observer& operator = (Observer const &rhs) = delete;
+    using value_type = NotificationType;
+
+    virtual ~Observer()                         = default;
+    Observer()                                  = default;
+    Observer(Observer&)                         = delete;
+    Observer(Observer&&)                        = delete;
+    Observer& operator      = (Observer const&) = delete;
+    Observer& operator      = (Observer&&)      = delete;
 
     /**
      * Notifications are called onto this interface
@@ -35,6 +38,5 @@ public:
      * @param notification The notification data passed to the observer from
      * the Observable.
      */
-    virtual void Notify(NotificationType const &notification) = 0;
+    virtual void Notify(value_type const &notification) = 0;
 };
-
