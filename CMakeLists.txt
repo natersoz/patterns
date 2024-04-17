@@ -78,6 +78,35 @@ enable_testing()
 # Even though googletest/include does get found, add it also for symmetry.
 FetchContent_GetProperties(googletest SOURCE_DIR GOOGLE_TEST_SOURCE_DIR)
 
+# add_executable(test_binary_tree binary_tree/test_binary_tree.cc)
+#
+# target_include_directories(
+#     test_binary_tree
+#     AFTER
+#     PRIVATE
+#     ${GOOGLE_TEST_SOURCE_DIR}/googletest/include
+#     ${GOOGLE_TEST_SOURCE_DIR}/googlemock/include
+# )
+#
+# target_link_libraries(
+#     test_binary_tree
+#     GTest::gtest_main
+#     GTest::gmock_main
+# )
+
+message(STATUS "CMAKE_SYSTEM_NAME             : ${CMAKE_SYSTEM_NAME}")
+message(STATUS "TOOLCHAIN                     : ${CMAKE_TOOLCHAIN_FILE}")
+message(STATUS "CMAKE_BUILD_TYPE              : ${CMAKE_BUILD_TYPE}")
+message(DEBUG  "RUNTIME_OUTPUT_DIRECTORY      : ${RUNTIME_OUTPUT_DIRECTORY}")
+message(DEBUG  "CMAKE_CONFIGURATION_TYPES     : ${CMAKE_CONFIGURATION_TYPES}")
+message(DEBUG  "C_FLAGS                       : ${CMAKE_C_FLAGS_${BUILD_TYPE_UPPER}}")
+message(DEBUG  "CXX_FLAGS                     : ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}")
+message(DEBUG  "CMAKE_OBJCOPY                 : ${CMAKE_OBJCOPY}")
+message(DEBUG  "CMAKE_OBJDUMP                 : ${CMAKE_OBJDUMP}")
+message(DEBUG  "CMAKE_NM                      : ${CMAKE_NM}")
+message(DEBUG  "CMAKE_SIZE                    : ${CMAKE_SIZE}")
+message(DEBUG  "GOOGLE_TEST_SOURCE_DIR        : ${GOOGLE_TEST_SOURCE_DIR}")
+
 function(add_test_executable test_name)
 
     add_executable(${test_name} ${ARGV})
@@ -96,51 +125,12 @@ function(add_test_executable test_name)
         GTest::gmock_main
     )
 
+    gtest_discover_tests(${test_name})
+
 endfunction()
 
-# add_test_executable(
-#     test_linked_list
-#     test_linked_list.cc
-# )
-
-# add_test_executable(
-#     test_binary_tree
-#     binary_tree/test_binary_tree.cc
-# )
-
-add_executable(test_binary_tree binary_tree/test_binary_tree.cc)
-
-target_include_directories(
-    test_binary_tree
-    AFTER
-    PRIVATE
-    ${GOOGLE_TEST_SOURCE_DIR}/googletest/include
-    ${GOOGLE_TEST_SOURCE_DIR}/googlemock/include
-)
-
-target_link_libraries(
-    test_binary_tree
-    GTest::gtest_main
-    GTest::gmock_main
-)
-
 include(GoogleTest)
-gtest_discover_tests(test_binary_tree)
 
-
-message(STATUS "CMAKE_SYSTEM_NAME             : ${CMAKE_SYSTEM_NAME}")
-message(STATUS "TOOLCHAIN                     : ${CMAKE_TOOLCHAIN_FILE}")
-message(STATUS "CMAKE_BUILD_TYPE              : ${CMAKE_BUILD_TYPE}")
-message(DEBUG  "RUNTIME_OUTPUT_DIRECTORY      : ${RUNTIME_OUTPUT_DIRECTORY}")
-message(DEBUG  "CMAKE_CONFIGURATION_TYPES     : ${CMAKE_CONFIGURATION_TYPES}")
-message(DEBUG  "C_FLAGS                       : ${CMAKE_C_FLAGS_${BUILD_TYPE_UPPER}}")
-message(DEBUG  "CXX_FLAGS                     : ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}")
-message(DEBUG  "CMAKE_OBJCOPY                 : ${CMAKE_OBJCOPY}")
-message(DEBUG  "CMAKE_OBJDUMP                 : ${CMAKE_OBJDUMP}")
-message(DEBUG  "CMAKE_NM                      : ${CMAKE_NM}")
-message(DEBUG  "CMAKE_SIZE                    : ${CMAKE_SIZE}")
-message(DEBUG  "GOOGLE_TEST_SOURCE_DIR        : ${GOOGLE_TEST_SOURCE_DIR}")
-
-# add_subdirectory(binary_tree)
+add_subdirectory(binary_tree)
 # add_subdirectory(linked_list)
 # add_subdirectory(observer)
