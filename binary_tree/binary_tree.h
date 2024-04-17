@@ -93,6 +93,9 @@ public:
         tree_node(value_type data_) noexcept :
             parent(nullptr), left(nullptr), right(nullptr), data(data_) {};
 
+        tree_node(value_type&& data_) noexcept :
+            parent(nullptr), left(nullptr), right(nullptr), data(data_) {};
+
         /**
          * Get the left most node in the tree, starting with this node.
          * @return tree_node const* The resulting left most child in the tree.
