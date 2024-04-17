@@ -27,13 +27,13 @@ template<typename Type>
 std::ostream& operator<<(std::ostream &os, linked_list<Type> const &list)
 {
     os << " sntl: 0x" << std::hex << std::setw(8) << std::setfill('0')
-       << &list.sentinal_;
+       << &list.sentinel_;
     os << " next: 0x" << std::hex << std::setw(8) << std::setfill('0')
-       << list.sentinal_.next_;
+       << list.sentinel_.next_;
     os << " prev: 0x" << std::hex << std::setw(8) << std::setfill('0')
-       << list.sentinal_.prev_;
+       << list.sentinel_.prev_;
 //    os << " data: " << std::dec << std::setw(4) << std::setfill(' ')
-//       << list.sentinal_.data_;
+//       << list.sentinel_.data_;
     os << std::endl;
 
     for (auto list_iter = list.cbegin(); list_iter != list.cend(); ++list_iter)

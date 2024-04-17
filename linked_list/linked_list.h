@@ -31,10 +31,12 @@ public:
 
         /** @{
          * Duplicate list nodes which point to the same node within
-         * a list is potential trouble. Disallow this situation.
+         * a list is potential trouble. Disallow copies.
          */
-        list_node(list_node const &)            = delete;
-        list_node& operator=(list_node const &) = delete;
+        list_node(list_node const &)               = delete;
+        list_node(list_node&&) noexcept            = default;
+        list_node& operator=(list_node const &)    = delete;
+        list_node& operator=(list_node&&) noexcept = default;
         /** @} */
 
         list_node(Type const &data): data_(data), next_(this), prev_(this) {}
@@ -73,11 +75,11 @@ public:
         }
 
         /**
-         * Determine the number of nodes whcih are linked between [first, last).
+         * Determine the number of nodes which are linked between [first, last).
          *
          * @param first The node to begin counting with.
          *              Counting includes this node.
-         * @param last  The last node to terminate couting with.
+         * @param last  The last node to terminate counting with.
          *              Counting excludes this node.
          *
          * @return std::size_t The number of lined nodes [first, last).
@@ -106,7 +108,7 @@ public:
             list_node* last_prev    = last.prev_;
 
             // Point the neighbors of first, last_prev around them so that
-            // the neighobrs are now connected.
+            // the neighbors are now connected.
             first.prev_->next_      = last_prev->next_;
             last_prev->next_->prev_ = first.prev_;
 
@@ -130,7 +132,7 @@ public:
 
         /**
          * Remove the node from the list in the manner a forward iterator
-         * remove opperation would perform.
+         * remove operation would perform.
          *
          * @return list_node* The list node in back of the node removed.
          */
@@ -143,7 +145,7 @@ public:
 
         /**
          * Remove the node from the list in the manner a reverse iterator
-         * remove opperation would perform.
+         * remove operation would perform.
          *
          * @return list_node* The list node in front of the node removed.
          */
@@ -179,13 +181,14 @@ public:
     };
 
     template<bool IsConst>
-    class _iterator_generic
+    class base_iterator
         : public std::iterator<std::bidirectional_iterator_tag, Type>
     {
     public:
-        using value_type = std::remove_cv_t<Type>;
-        using reference  = std::conditional_t<IsConst, const Type, Type>&;
-        using pointer    = std::add_pointer_t<reference>;
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type        = std::remove_cv_t<Type>;
+        using reference         = std::conditional_t<IsConst, const Type, Type>&;
+        using pointer           = std::add_pointer_t<reference>;
 
         using node_reference = std::conditional_t<
             IsConst,
@@ -194,38 +197,41 @@ public:
 
         using node_pointer = std::add_pointer_t<node_reference>;
 
-        ~_iterator_generic()                                       = default;
-        _iterator_generic(_iterator_generic const& other)          = default;
-        _iterator_generic& operator=(_iterator_generic const& rhs) = default;
+        ~base_iterator()                                   = default;
+        base_iterator()                                    = delete;
+        base_iterator(base_iterator const&)                = default;
+        base_iterator(base_iterator&&) noexcept            = default;
+        base_iterator& operator=(base_iterator const&)     = default;
+        base_iterator& operator=(base_iterator&&) noexcept = default;
 
-        _iterator_generic(node_reference node) : node_(&node) {}
+        base_iterator(node_reference node) : node_(&node) {}
 
         // Pre-increment operator: ++iterator.
-        _iterator_generic& operator++()
+        base_iterator& operator++()
         {
             this->node_ = this->node_->next_;
             return *this;
         }
 
         // Post-increment operator: iterator++.
-        _iterator_generic operator++(int)
+        base_iterator operator++(int)
         {
-            _iterator_generic ret_val = *this;
+            base_iterator ret_val = *this;
             ++(*this);
             return ret_val;
         }
 
         // Pre-increment operator: --iterator.
-        _iterator_generic& operator--()
+        base_iterator& operator--()
         {
             this->node_ = this->node_->prev_;
             return *this;
         }
 
         // Pos-increment operator: iterator--.
-        _iterator_generic operator--(int)
+        base_iterator operator--(int)
         {
-            _iterator_generic ret_val = *this;
+            base_iterator ret_val = *this;
             --(*this);
             return ret_val;
         }
@@ -236,12 +242,12 @@ public:
          * @note const_iterator and iterator pointing a the same node will
          * return true. This is the intended behavior.
          */
-        bool operator==(_iterator_generic const& other) const
+        bool operator==(base_iterator const& other) const
         {
             return (this->node_ == other.node_);
         }
 
-        bool operator!=(_iterator_generic const& other) const
+        bool operator!=(base_iterator const& other) const
         {
             return not(*this == other);
         }
@@ -255,26 +261,26 @@ public:
         node_pointer node_;
     };
 
-    using iterator       = _iterator_generic<false>;
-    using const_iterator = _iterator_generic<true>;
+    using iterator       = base_iterator<false>;
+    using const_iterator = base_iterator<true>;
 
-    /** Create an empty linked_list; contains a single sentinal node. */
+    /** Create an empty linked_list; contains a single sentinel node. */
     linked_list() = default;
 
     // @todo these might be useful:
     // linked_list(std::initializer_list<T> init);
     // list& operator=( list&& other );
-    // list& operator=( std::initializer_list<T> ilist );
+    // list& operator=( std::initializer_list<T> list );
     // splice()
 
-    iterator       begin()        { return       iterator(*this->sentinal_.next_); }
-    const_iterator begin()  const { return const_iterator(*this->sentinal_.next_); }
+    iterator       begin()        { return       iterator(*this->sentinel_.next_); }
+    const_iterator begin()  const { return const_iterator(*this->sentinel_.next_); }
 
-    iterator       end()          { return       iterator(this->sentinal_); }
-    const_iterator end()    const { return const_iterator(this->sentinal_); }
+    iterator       end()          { return       iterator(this->sentinel_); }
+    const_iterator end()    const { return const_iterator(this->sentinel_); }
 
-    iterator       rbegin()       { return       iterator(*this->sentinal_.prev_); }
-    const_iterator rbegin() const { return const_iterator(*this->sentinal_.prev_); }
+    iterator       rbegin()       { return       iterator(*this->sentinel_.prev_); }
+    const_iterator rbegin() const { return const_iterator(*this->sentinel_.prev_); }
 
     iterator       rend()         { return this->end(); }
     const_iterator rend()   const { return this->end(); }
@@ -289,7 +295,7 @@ public:
      * @return bool true if the list contains no non-sentinal nodes.
      * false if there are active nodes within the list.
      */
-    bool empty() const { return this->sentinal_.next_ == &this->sentinal_; }
+    bool empty() const { return this->sentinel_.next_ == &this->sentinel_; }
 
     /**
      * @return std::size_t The number of nodes contained in the list.
@@ -297,7 +303,7 @@ public:
      */
     std::size_t size() const
     {
-        return list_node::count(*this->sentinal_.next_, this->sentinal_);
+        return list_node::count(*this->sentinel_.next_, this->sentinel_);
     }
 
     /** @return The maximum number of nodes that a list can contain. */
@@ -315,10 +321,10 @@ public:
      * @return iterator The iterator pointing the inserted node.
      */
     template<bool IsConst>
-    _iterator_generic<IsConst> insert(_iterator_generic<IsConst> pos, list_node &node)
+    base_iterator<IsConst> insert(base_iterator<IsConst> pos, list_node &node)
     {
         pos.node_->insert_before(node);
-        return _iterator_generic<IsConst>(node);
+        return base_iterator<IsConst>(node);
     }
 
     /**
@@ -333,11 +339,11 @@ public:
      * @return iterator The iterator pointing the inserted node.
      */
     template<bool IsConst>
-    _iterator_generic<IsConst> insert(_iterator_generic<IsConst> pos,
-                                      _iterator_generic<IsConst>& node_iter)
+    base_iterator<IsConst> insert(base_iterator<IsConst> pos,
+                                  base_iterator<IsConst>& node_iter)
     {
         pos.node_->insert_before(node_iter.node_);
-        return _iterator_generic<IsConst>(node_iter.node_);
+        return base_iterator<IsConst>(node_iter.node_);
     }
 
     /**
@@ -359,9 +365,9 @@ public:
      *                  IF first == last: The iterator pos.
      */
     template<bool IsConst>
-    _iterator_generic<IsConst> insert(_iterator_generic<IsConst> pos,
-                                      _iterator_generic<IsConst> first,
-                                      _iterator_generic<IsConst> last)
+    base_iterator<IsConst> insert(base_iterator<IsConst> pos,
+                                  base_iterator<IsConst> first,
+                                  base_iterator<IsConst> last)
     {
         if (first == last)
         {
@@ -375,11 +381,11 @@ public:
     }
 
     /** @{ Access the node data from the front and back of the list. */
-    Type&       front()       { return this->sentinal_.next_->data_; }
-    Type const& front() const { return this->sentinal_.next_->data_; }
+    Type&       front()       { return this->sentinel_.next_->data_; }
+    Type const& front() const { return this->sentinel_.next_->data_; }
 
-    Type&       back()        { return this->sentinal_.prev_->data_; }
-    Type const& back()  const { return this->sentinal_.prev_->data_; }
+    Type&       back()        { return this->sentinel_.prev_->data_; }
+    Type const& back()  const { return this->sentinel_.prev_->data_; }
     /** @} */
 
     /**
@@ -388,7 +394,7 @@ public:
      */
     void push_front(list_node& node)
     {
-        this->sentinal_.insert_after(node);
+        this->sentinel_.insert_after(node);
     }
 
     /**
@@ -397,7 +403,7 @@ public:
      */
     void push_back(list_node& node)
     {
-        this->sentinal_.insert_before(node);
+        this->sentinel_.insert_before(node);
     }
 
     /**
@@ -408,7 +414,7 @@ public:
     {
         if (not this->empty())
         {
-            this->sentinal_.next_->remove();
+            this->sentinel_.next_->remove();
         }
     }
 
@@ -420,7 +426,7 @@ public:
     {
         if (not this->empty())
         {
-            this->sentinal_.prev_->remove();
+            this->sentinel_.prev_->remove();
         }
     }
 
@@ -434,10 +440,10 @@ public:
      * If pos refers to the last element then end() is returned.
      */
     template<bool IsConst>
-    _iterator_generic<IsConst> erase(_iterator_generic<IsConst> pos)
+    base_iterator<IsConst> erase(base_iterator<IsConst> pos)
     {
-        return _iterator_generic<IsConst>(*pos.node_->remove_forward());
+        return base_iterator<IsConst>(*pos.node_->remove_forward());
     }
 
-    list_node sentinal_;
+    list_node sentinel_;
 };
