@@ -1,11 +1,18 @@
 /**
- * @file test_list.cc
+ * @file test_linked_list.cc
  */
 
+#include "gtest/gtest.h"
+
 #include "linked_list.h"
+
+#include <array>
 #include <iostream>
 #include <iomanip>
 #include <cassert>
+
+using namespace testing;
+
 
 #if 0   // Just print the integers
 
@@ -62,7 +69,7 @@ void check_ascending_forward(linked_list<Type> &list)
     {
         int const value_1 = *list_iter++;
         int const value_2 = *list_iter;
-        assert(value_2 == value_1 + 1);
+        EXPECT_EQ(value_2, value_1 + 1);
     }
 }
 
@@ -75,7 +82,7 @@ void check_descending_reverse(linked_list<Type> &list)
     {
         int const value_1 = *list_iter--;
         int const value_2 = *list_iter;
-        assert(value_2 == value_1 - 1);
+        EXPECT_EQ(value_2, value_1 - 1);
     }
 }
 
@@ -84,143 +91,160 @@ void check_nodes(linked_list<Type> &list)
 {
     for (auto list_iter = list.begin(); list_iter != list.end(); ++list_iter)
     {
-        assert (list_iter.node_->next_->prev_ == list_iter.node_);
-        assert (list_iter.node_->prev_->next_ == list_iter.node_);
+        EXPECT_EQ(list_iter.node_->next_->prev_, list_iter.node_);
+        EXPECT_EQ(list_iter.node_->prev_->next_, list_iter.node_);
     }
 }
 
-int main()
+class TestLinkedList : public Test
 {
-    int result = 0;
+public:
+    linked_list<int>                             test_list_forward;
+    linked_list<int>                             test_list_reverse;
+    std::array<linked_list<int>::list_node, 10u> list_nodes_forward;
+    std::array<linked_list<int>::list_node, 10u> list_nodes_reverse;
 
-    linked_list<int> list_1;
-    linked_list<int>::list_node nodes_fwd[10];
-
-    for (linked_list<int>::list_node& list_node : nodes_fwd)
+    TestLinkedList() : Test(), test_list_forward(), test_list_reverse()
     {
-        // Push list nodes to the back of the list with ascending integer data.
-        // Result in list data: {1 ... 10}
-        list_node.data_ = (&list_node - std::begin(nodes_fwd)) + 1;
-        list_1.push_back(list_node);
+        EXPECT_TRUE(test_list_forward.empty());
     }
 
-    std::cout << "--- list 1 created:" << std::endl;
-    std::cout << list_1 << std::endl;
-
-    check_ascending_forward(list_1);
-    check_descending_reverse(list_1);
-    check_nodes(list_1);
-
-    assert(list_1.front() ==  1);
-    assert(list_1.back()  == 10);
-    assert(list_1.size()  == 10);
-
-    linked_list<int> list_2;
-    linked_list<int>::list_node nodes_rev[10];
-
-    for (linked_list<int>::list_node& list_node : nodes_rev)
+    void fill_test_data_forward()
     {
-        // Push list nodes to the front of the list with ascending values
-        // which are <= 0. The list data added: { -9 ... 0 }
-        list_node.data_ = (std::begin(nodes_rev) - &list_node);
-        list_2.push_front(list_node);
+        for (linked_list<int>::list_node& list_node : list_nodes_forward)
+        {
+            // Push list nodes to the back of the list with ascending integer data.
+            // Result in list data: {1 ... 10}
+            list_node.data_ = (&list_node - std::begin(list_nodes_forward)) + 1;
+            test_list_forward.push_back(list_node);
+        }
+
+        // std::cout << "--- list forward created:" << std::endl;
+        // std::cout << test_list_forward << std::endl;
     }
 
-    std::cout << "--- list 2 created:" << std::endl;
-    std::cout << list_2 << std::endl;
+    void fill_test_data_reverse()
+    {
+        for (linked_list<int>::list_node& list_node : list_nodes_reverse)
+        {
+            // Push list nodes to the front of the list with ascending values
+            // which are <= 0. The list data added: { -9 ... 0 }
+            list_node.data_ = (std::begin(list_nodes_reverse) - &list_node);
+            test_list_reverse.push_front(list_node);
+        }
 
-    check_ascending_forward(list_2);
-    check_descending_reverse(list_2);
-    check_nodes(list_2);
+        // std::cout << "--- list reverse created:" << std::endl;
+        // std::cout << test_list_reverse << std::endl;
+    }
+};
 
-    assert(list_2.front() == -9);
-    assert(list_2.back()  ==  0);
-    assert(list_2.size()  == 10);
+TEST_F(TestLinkedList, check_filled_test_data)
+{
+    fill_test_data_forward();
+    fill_test_data_reverse();
 
-    std::cout << "--- insert list 2 -> list 1:" << std::endl;
-    list_1.insert(list_1.begin(), list_2.begin(), list_2.end());
+    check_ascending_forward(test_list_forward);
+    check_descending_reverse(test_list_forward);
+    check_nodes(test_list_forward);
 
-    assert(list_1.front() == -9);
-    assert(list_1.back()  == 10);
-    assert(list_1.size()  == 20);
-    assert(list_2.size()  ==  0);
+    EXPECT_EQ(test_list_forward.front(), 1);
+    EXPECT_EQ(test_list_forward.back(), 10);
+    EXPECT_EQ(test_list_forward.size(), list_nodes_forward.size());
 
-    std::cout << "--- list 1:" << std::endl;
-    std::cout << list_1 << std::endl;
+    check_ascending_forward(test_list_reverse);
+    check_descending_reverse(test_list_reverse);
+    check_nodes(test_list_reverse);
 
-    std::cout << "--- list 2:" << std::endl;
-    std::cout << list_2 << std::endl;
+    EXPECT_EQ(test_list_reverse.front(), -9);
+    EXPECT_EQ(test_list_reverse.back(),   0);
+    EXPECT_EQ(test_list_reverse.size(),  10);
 
-    check_nodes(list_1);
-    check_nodes(list_2);
+    // std::cout << "--- insert list 2 -> list 1:" << std::endl;
+    test_list_forward.insert(test_list_forward.begin(),
+                             test_list_reverse.begin(),
+                             test_list_reverse.end());
 
-    std::cout << "move list 1 [-5, 5) -> list 2" << std::endl;
+    EXPECT_EQ(test_list_forward.front(), -9);
+    EXPECT_EQ(test_list_forward.back(),  10);
+    EXPECT_EQ(test_list_forward.size(),  20);
+    EXPECT_EQ(test_list_reverse.size(),   0);
 
-    auto iter_find_neg5 = std::find(list_1.begin(), list_1.end(), -5);
-    auto iter_find_pos5 = std::find(list_1.begin(), list_1.end(),  5);
+    // std::cout << "--- list 1:" << std::endl;
+    // std::cout << test_list_forward << std::endl;
 
-    list_2.insert(list_2.begin(), iter_find_neg5, iter_find_pos5);
+    // std::cout << "--- list 2:" << std::endl;
+    // std::cout << test_list_reverse << std::endl;
 
-    std::cout << "--- list 1:" << std::endl;
-    std::cout << list_1 << std::endl;
+    check_nodes(test_list_forward);
+    check_nodes(test_list_reverse);
 
-    std::cout << "--- list 2:" << std::endl;
-    std::cout << list_2 << std::endl;
+    // std::cout << "move list 1 [-5, 5) -> list 2" << std::endl;
 
-    check_nodes(list_1);
-    check_nodes(list_2);
+    auto iter_find_neg5 = std::find(test_list_forward.begin(), test_list_forward.end(), -5);
+    auto iter_find_pos5 = std::find(test_list_forward.begin(), test_list_forward.end(),  5);
 
-    assert(list_1.front() == -9);
-    assert(list_1.back()  == 10);
+    test_list_reverse.insert(test_list_reverse.begin(), iter_find_neg5, iter_find_pos5);
 
-    assert(list_2.front() == -5);
-    assert(list_2.back()  ==  4);
+    // std::cout << "--- list 1:" << std::endl;
+    // std::cout << test_list_forward << std::endl;
+
+    // std::cout << "--- list 2:" << std::endl;
+    // std::cout << test_list_reverse << std::endl;
+
+    check_nodes(test_list_forward);
+    check_nodes(test_list_reverse);
+
+    EXPECT_EQ(test_list_forward.front(), -9);
+    EXPECT_EQ(test_list_forward.back(),  10);
+
+    EXPECT_EQ(test_list_reverse.front(), -5);
+    EXPECT_EQ(test_list_reverse.back(),   4);
 
     // Test the front and back functions.
-    list_1.pop_front();
-    assert(list_1.front() == -8);
-    list_1.pop_back();
-    assert(list_1.back()  ==  9);
+    test_list_forward.pop_front();
+    EXPECT_EQ(test_list_forward.front(), -8);
+    test_list_forward.pop_back();
+    EXPECT_EQ(test_list_forward.back(), 9);
 
     // Test the begin and end functions.
-    assert(*list_1.begin() == *list_1.cbegin());
-    assert(*list_1.end()   == *list_1.cend());
+    EXPECT_EQ(*test_list_forward.begin(), *test_list_forward.cbegin());
+    EXPECT_EQ(*test_list_forward.end(),   *test_list_forward.cend());
 
     // Test erase as well and push_front().
     {
-        auto iter_begin = list_1.begin();
-        list_1.erase(iter_begin);
-        assert(list_1.front() == -7);
-        check_nodes(list_1);
-        list_1.push_front(iter_begin);
-        assert(list_1.front() == -8);
-        check_nodes(list_1);
+        auto iter_begin = test_list_forward.begin();
+        test_list_forward.erase(iter_begin);
+        EXPECT_EQ(test_list_forward.front(), -7);
+        check_nodes(test_list_forward);
+        test_list_forward.push_front(iter_begin);
+        EXPECT_EQ(test_list_forward.front(), -8);
+        check_nodes(test_list_forward);
     }
 
     // Test erase and push_back().
     {
-        auto iter_rbegin = list_1.rbegin();
-        list_1.erase(iter_rbegin);
-        assert(list_1.back() == 8);
-        check_nodes(list_1);
-        list_1.push_back(iter_rbegin);
-        assert(list_1.back() == 9);
-        check_nodes(list_1);
+        auto iter_rbegin = test_list_forward.rbegin();
+        test_list_forward.erase(iter_rbegin);
+        EXPECT_EQ(test_list_forward.back(), 8);
+        check_nodes(test_list_forward);
+        test_list_forward.push_back(iter_rbegin);
+        EXPECT_EQ(test_list_forward.back(), 9);
+        check_nodes(test_list_forward);
     }
 
-    std::cout << "append list_2 to the end of list 1" << std::endl;
-    list_1.insert(list_1.end(), list_2.begin(), list_2.end());
+    // std::cout << "append test_list_reverse to the end of list 1" << std::endl;
+    test_list_forward.insert(test_list_forward.end(),
+                             test_list_reverse.begin(),
+                             test_list_reverse.end());
 
-    std::cout << "--- list 1:" << std::endl;
-    std::cout << list_1 << std::endl;
+    // std::cout << "--- list 1:" << std::endl;
+    // std::cout << test_list_forward << std::endl;
 
-    std::cout << "--- list 2:" << std::endl;
-    std::cout << list_2 << std::endl;
+    // std::cout << "--- list 2:" << std::endl;
+    // std::cout << test_list_reverse << std::endl;
 
-    check_nodes(list_1);
-    check_nodes(list_2);
+    check_nodes(test_list_forward);
+    check_nodes(test_list_reverse);
 
-    std::cout << "--- Tests Pass" << std::endl;
-
-    return result;
+    // std::cout << "--- Tests Pass" << std::endl;
 }
